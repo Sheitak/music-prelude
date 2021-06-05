@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'package:audioplayer2/audioplayer2.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'music.dart';
 // import 'package:audioplayers/audioplayers.dart';
-import 'package:audioplayer/audioplayer.dart';
+// import 'package:audioplayer/audioplayer.dart';
 
 void main() => {
   runApp(new MyApp())
@@ -47,17 +48,15 @@ class _Home extends State<Home> {
   StreamSubscription stateSubscription;
   Music actualMusic;
   Duration position = new Duration(seconds: 0);
-  Duration period = new Duration(seconds: 0);
+  Duration period = new Duration(seconds: 10);
   PlayerState status = PlayerState.stopped;
+  int index = 0;
 
   void initState() {
     super.initState();
-    actualMusic = myMusicList[0];
+    actualMusic = myMusicList[index];
     audioPlayerConfiguration();
   }
-
-  // AudioCache audioCache = AudioCache();
-  // AudioPlayer audioPlayer = AudioPlayer();
 
   @override
   Widget build(BuildContext context) {
@@ -96,8 +95,8 @@ class _Home extends State<Home> {
             new Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                textWithStyle('0:0', 0.8),
-                textWithStyle('0:22', 0.8),
+                textWithStyle(fromDuration(position), 0.8),
+                textWithStyle(fromDuration(period), 0.8),
               ],
             ),
             new Slider(
@@ -108,8 +107,9 @@ class _Home extends State<Home> {
               activeColor: Colors.red,
               onChanged: (double d) {
                 setState(() {
-                  Duration newDuration = new Duration(seconds: d.toInt());
-                  position = newDuration;
+                  audioPlayer.seek(d);
+                  // Duration newDuration = new Duration(seconds: d.toInt());
+                  // position = newDuration;
                 });
               },
             )
@@ -149,9 +149,11 @@ class _Home extends State<Home> {
               break;
             case ActionMusic.forward:
               print(('Forward'));
+              forward();
               break;
             case ActionMusic.rewind:
               print(('Rewind'));
+              rewind();
               break;
           }
         }
@@ -201,6 +203,39 @@ class _Home extends State<Home> {
     setState(() {
       status = PlayerState.paused;
     });
+  }
+
+  void forward() {
+    if (index == myMusicList.length  - 1){
+      index = 0;
+    } else {
+      index++;
+    }
+    actualMusic = myMusicList[index];
+    audioPlayer.stop();
+    audioPlayerConfiguration();
+    play();
+  }
+
+  void rewind() {
+    if (position > Duration(seconds: 3)) {
+      audioPlayer.seek(0.0);
+    } else {
+      if (index == 0) {
+        index = myMusicList.length - 1;
+      } else {
+        index--;
+      }
+      actualMusic = myMusicList[index];
+      audioPlayer.stop();
+      audioPlayerConfiguration();
+      play();
+    }
+  }
+
+  String fromDuration(Duration period) {
+    print(period);
+    return period.toString().split('.').first;
   }
 }
 
